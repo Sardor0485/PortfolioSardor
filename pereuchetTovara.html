@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta name="viewport"content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Table</title>
+</head>
+<body>
+    <table id="table" border="1">
+        <thead>
+            <tr>
+                <th>назв/е</th>
+                <th>кол/во</th>
+                <th>цена</th>
+                <th>итог</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" name="name"/></td>
+                <td><input type="number" name="count" onchange="calculateTotal(this)"/></td>
+                <td><input type="number" name="price" onchange="calculateTotal(this)"/></td>
+                <td><input type="number" name="total" readonly/></td>
+            </tr>
+        </tbody>
+    </table>
+    <button onclick="addRow()">таблица</button>
+    <input type="text" name="grandTotal" id="a"readonly/>
+    <script>
+        function calculateTotal(input) {
+            let row = input.parentNode.parentNode;
+            let count = row.querySelector('[name="count"]').value;
+            let price = row.querySelector('[name="price"]').value;
+            let total = row.querySelector('[name="total"]');
+            total.value = count * price;
+            calculateGrandTotal();
+        }
+
+        function calculateGrandTotal() {
+            let table = document.getElementById('table');
+            let rows = table.querySelectorAll('tbody tr');
+            let grandTotal = 0;
+            for (let row of rows){
+                grandTotal += parseInt(row.querySelector('[name="total"]').value);
+            }
+            document.querySelector('[name="grandTotal"]').value = grandTotal;
+        }
+
+        function addRow() {
+            let table = document.getElementById('table');
+            let row = table.insertRow(-1);
+            let cell1 = row.insertCell(0);
+            let cell2 = row.insertCell(1);
+            let cell3 = row.insertCell(2);
+            let cell4 = row.insertCell(3);
+
+            cell1.innerHTML = '<input type="text" name="name"/>';
+            cell2.innerHTML = '<input type="text" name="count" onchange="calculateTotal(this)"/>';
+            cell3.innerHTML = '<input type="text" name="price" onchange="calculateTotal(this)"/>';
+            cell4.innerHTML = '<input type="text" name="total" readonly/>';
+        }
+    </script>
+    <style>
+    input{
+  width:70px
+    }
+    table{
+    border: none;
+    	
+    }
+    input,td{
+    border: none;
+    background-color: yellow; 
+    margin:2px;
+    font-size:18px;	
+    }
+    td{
+    box-shadow:3px 3px 1px #ccc;
+    border-left:0.1px solid;
+    border-right:0.1px solid;	
+    }
+    #a{
+    width:200px; 
+     background-color:lightBlue; 
+     font-weight:bold;
+     font-size:22px;
+     text-align: center; 	
+    }
+    th{
+    background-color:#770; 
+    color:#fff
+    	
+    }
+    </style>
+</body>
+</html>

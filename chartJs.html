@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+ <title></title>
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Пример графика с Chart.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="myChart"></canvas>
+
+    <script>
+        // Получите ссылку на элемент canvas
+        var ctx = document.getElementById('myChart').getContext('2d');
+
+        // Создайте экземпляр объекта Chart и передайте в него контекст canva
+        var myChart = new Chart(ctx, {
+            type: 'bar', // тип графика (например, bar, line, pie)
+            data: {
+                labels: ['07.06', '07.07', '07.08', '07.09', '07.12', '07.13', '07.15', '07.16', '07.17','07.18', '07.19','07.20', '07.21', '07.22', '07.23', '07.24','07.27', '07.28','07.29', '07.31', '08.01', '08.02', '08.03', '08.04', '08.05', '08.06','08.07','08.08','08.09','08.10', '08.12'], // метки для оси X
+                datasets: [{
+                    label: 'Продажи', // название набора данных
+                    data: [368000,184000,214000 ,251000,325000,289000, 327000,341000, 310000, 536000,318000,475000,507000,320000,204000,398000, 253000, 433000,419000, 368000+159000,383000, 404000,597000,465000,819000,494000,387000, 216000, 278000, 339000,23000,129000], // значения графика
+                    backgroundColor: 'rgba(75, 192, 192,0.5)', // цвет заполнения
+                    borderColor: 'rgba(75, 192, 192,1)', // цвет границы
+                    borderWidth: 1 // ширина границы
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true // ось Y начинается с 0
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+ <script src="script.js"></script>
+</body>
+</html>

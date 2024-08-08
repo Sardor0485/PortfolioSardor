@@ -1,0 +1,89 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Отпуск пулларини хисоблаш</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Отпуск пулларини хисоблаш</h1>
+   
+    <table>
+        <tr>
+            <td>Сентябрь - декабрь:</td>
+            <td><input type="number" id="income1" min="0" step="1000" oniput="calculateVacationMoney()"></td>
+        </tr>
+        <tr>
+            <td>Январь - май:</td>
+            <td><input type="number" id="income2" min="0" step="1000"oninput="calculateVacationMoney()"></td>
+        </tr>
+        <tr>
+            <td>Умумий доход:</td>
+            <td id="totalIncome"></td>
+        </tr>
+        <tr>
+            <td>Oртача ойлик даромад:</td>
+            <td id="averageIncome"></td>
+        </tr>
+        <tr>
+            <td>1 кун иш учун пуллар:</td>
+            <td id="dailyIncome"></td>
+        </tr>
+        <tr>
+            <td>48 кунлик отпуска пуллари:</td>
+            <td id="vacationMoney"></td>
+        </tr>
+        <tr>
+            <td>Даромад солиги сумма (13%):</td>
+            <td id="taxAmount"></td>
+        </tr>
+        <tr>
+            <td>Жами сумма:</td>
+            <td id="totalAmount"></td>
+      
+      
+        </tr>
+    </table>
+
+    
+
+</body>
+</html>
+
+
+</style>
+    <script>
+        function calculateVacationMoney() {
+            var income1 = document.getElementById("income1").value;
+            var income2 = document.getElementById("income2").value;
+            
+            var totalIncome = Number(income1) + Number(income2);
+            var averageIncome = totalIncome / 9;
+            var dailyIncome = averageIncome / 25.4;
+            var vacationMoney = dailyIncome * 48;
+            var taxAmount = vacationMoney * 0.13;
+            var totalAmount = vacationMoney - taxAmount;
+            
+            document.getElementById("totalIncome").innerHTML = totalIncome.toLocaleString() + " сўм";
+            document.getElementById("averageIncome").innerHTML = averageIncome.toLocaleString() + " сўм";
+            document.getElementById("dailyIncome").innerHTML = dailyIncome.toLocaleString() + " сўм";
+            document.getElementById("vacationMoney").innerHTML = vacationMoney.toLocaleString() + " сўм";
+            document.getElementById("taxAmount").innerHTML = taxAmount.toLocaleString() + " сўм";
+            document.getElementById("totalAmount").innerHTML = totalAmount.toLocaleString() + " сўм";
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<p>.. </p> 
+<div class="out" >
+<button onclick="na()" >+</button > 
+<button onclick="na2()" >-</button > 
+<button onclick="na3()" >+=</button > 
+
+<button onclick="na4()" >-=</button >
+<button onclick="na5()" >0</button > 
+</div> 
+
+<style>
+body {
+background-color:black;
+color:white;
+font-size :40px;
+	
+} 
+button {
+	border:solid 1px transparent;
+	border-radius:10px;
+	margin:10px;
+	border-top:3px solid red;
+	height:40px;
+	border-left:3px solid pink
+} 
+button:hover{
+background-color:gold;
+border:solid 3px yellow;
+border-top:3px solid goldenrod;
+	border-left:3px solid white;
+	box-shadow:0px 0px 20px #999,0px 0px 40px #999,0px 0px 80px #999;;	
+} 
+
+.out{
+display:flex;
+height:55px;
+width:300px;
+justify-content:center;
+align-items:center;
+	
+}
+p{
+	font-size :70px;
+	border:0.02px dashed #190;
+	border-radius:10px 10px 0 0;
+	border-top:solid 1px #ccc;
+	text-align:center;
+} 
+</style>
+
+
+
+<script>
+var obj = {count:0}
+
+Object.defineProperty(obj,"reset",
+ {get:function() {this.count=0;} }) 
+ 
+ Object.defineProperty(obj, "increment",
+ {get:function() {this.count++;} } )
+ 
+ Object.defineProperty(obj, "decrement",
+ {get:function() {this.count--;} } )
+ 
+ Object.defineProperty(obj,"add",
+ {set:function(value) {this.count+=value;} })
+
+
+Object.defineProperty(obj,"min",
+ {set:function(value) {this.count-=value;} } )
+ 
+  function na() {
+obj.increment;
+document.querySelector("p").innerHTML=obj.count
+} 
+function na2() {
+obj.decrement;
+document.querySelector("p").innerHTML=obj.count
+} 
+function na3() {
+obj.add=10;
+document.querySelector("p").innerHTML=obj.count
+} 
+function na4() {
+obj.min=10;
+document.querySelector("p").innerHTML=obj.count
+} 
+function na5() {
+obj.reset;
+document.querySelector("p").innerHTML=obj.count
+} 
+</script>
+<script src="script.js"></script> 
