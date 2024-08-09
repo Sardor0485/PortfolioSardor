@@ -1,9 +1,13 @@
 <span style="font-size:40px">👋</span>
 <a href="https://o03jl3.mimo.run/in.html">GrandTotal</a> 
-
+<br>
 <a href="https://7cqupg.mimo.run/index.html">Summa</a> 
+<br>
 <a href="https://asl2gj.mimo.run/index.html">Slovar</a> 
-
+<br>
 <a href="https://5mv5n0.mimo.run/index.html">OtpusknoyPullari</a> 
+<br>
+
 <a href="https://clm2mk.mimo.run/index.html">ChartJS</a> 
+<br>
 <a href="https://0ihpyg.mimo.run/index.html">Counter</a> 
