@@ -1,7 +1,7 @@
 <span style="font-size:40px">👋</span>
 <a href="https://o03jl3.mimo.run/in.html">GrandTotal</a> 
 <a href="https://7cqupg.mimo.run/index.html">link</a> 
-<a href="https://7cqupg.mimo.run/index.html">Slovar</a> 
+<a href="https://7cqupg.mimo.run/index.html">Summa</a> 
 <a href="https://asl2gj.mimo.run/index.html">link</a> 
 
 <a href="https://5mv5n0.mimo.run/index.html">OtpusknoyPullari</a> 
