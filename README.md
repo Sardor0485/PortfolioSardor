@@ -5,5 +5,5 @@
 <a href="https://asl2gj.mimo.run/index.html">link</a> 
 
 <a href="https://5mv5n0.mimo.run/index.html">link</a> 
-<a href="https://clm2mk.mimo.run/index.html">link</a> 
+<a href="https://clm2mk.mimo.run/index.html">ChartJS</a> 
 <a href="https://0ihpyg.mimo.run/index.html">link</a> 
