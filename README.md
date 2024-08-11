@@ -15,5 +15,4 @@
 <br>
 <a href="https://fwyddk.mimo.run/index.html">Pereuchet<a/>
 <br>
-
 <a href="https://a467m5.mimo.run/index.html">Photo</a>
