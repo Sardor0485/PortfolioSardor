@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Kamera, Ovoz va Ob-havo</title>
+<style>
+  body {
+    margin: 0;
+    background: #222;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+  }
+  h1 {
+    margin: 10px 0;
+    text-align: center;
+  }
+  .camera-frame {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 4 / 3;
+    border: 3px solid #4caf50;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 15px #4caf50aa;
+    background: black;
+  }
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .audio-visualizer {
+    margin-top: 15px;
+    width: 100%;
+    max-width: 480px;
+    height: 60px;
+    background: #111;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #4caf50;
+    overflow: hidden;
+  }
+  #weather {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #333;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 10px #4caf50aa;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Kamera + Ovoz + Ob-havo</h1>
+
+  <div class="camera-frame">
+    <video id="video" autoplay muted playsinline></video>
+  </div>
+
+  <div class="audio-visualizer">
+    <canvas id="canvas" width="480" height="60"></canvas>
+  </div>
+
+  <div id="weather">⏳ Ob-havo ma’lumoti yuklanmoqda...</div>
+
+<script>
+  const API_KEY = "41c5ca1947eccf8e5b6d3adc2b129921";
+
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      source.connect(analyser);
+      analyser.fftSize = 256;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      function draw() {
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+        let barHeight, x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          barHeight = dataArray[i] / 2;
+          ctx.fillStyle = 'rgb(75,175,80)';
+          ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+          x += barWidth + 1;
+        }
+      }
+      draw();
+    } catch (e) {
+      alert('Kamera/mikrofonga ruxsat berilmadi: ' + e.message);
+    }
+  }
+
+  function getWeather(lat, lon) {
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=uz&appid=${API_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('weather').innerHTML = `
+          📍 Joylashuv: ${data.name} <br>
+          🌡 Harorat: ${data.main.temp}°C <br>
+          ☁ Holati: ${data.weather[0].description} <br>
+          💨 Shamol: ${data.wind.speed} m/s
+        `;
+      })
+      .catch(err => {
+        document.getElementById('weather').innerText = "❌ Ob-havo ma’lumotini olishda xatolik";
+      });
+  }
+
+  function startWeather() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          getWeather(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          document.getElementById('weather').innerText = "❌ Geolokatsiyaga ruxsat berilmadi";
+        }
+      );
+    } else {
+      document.getElementById('weather').innerText = "❌ Geolokatsiya qo‘llab-quvvatlanmaydi";
+    }
+  }
+
+  async function main() {
+    await startCamera();
+    startWeather();
+  }
+
+  main();
+</script>
+</body>
+</html>
