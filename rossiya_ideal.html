@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Xarajat & Foyda Hisoblagichi — Qarzni oyma-oy yechish</title>
+<style>
+  body{font-family:"Segoe UI",Arial,sans-serif;background:#f2f5f9;padding:18px;color:#222;}
+  .container{max-width:760px;margin:0 auto;}
+  .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,0.06);border-top:4px solid #0d6efd;margin-bottom:14px;}
+  h1{font-size:18px;margin:0;color:#0d6efd}
+  p.lead{margin:6px 0 0;color:#556070;font-size:13px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-weight:600;color:#334155;font-size:13px;margin-bottom:6px}
+  input[type="number"], input[type="text"]{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef6;background:#fbfeff;font-size:15px}
+  input:focus{outline:none;box-shadow:0 8px 20px rgba(13,110,253,0.08);border-color:#0d6efd}
+  .full{grid-column:1/-1}
+  button{width:100%;padding:12px;border-radius:10px;border:none;background:#0d6efd;color:#fff;font-weight:700;cursor:pointer;margin-top:12px}
+  button:hover{background:#0b5ed7}
+
+  .result{background:#f9fbff;border:1px solid #e6f0ff;padding:14px;border-radius:10px;margin-top:12px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .stat{flex:1;min-width:160px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 6px 18px rgba(10,14,20,0.03)}
+  .stat h4{margin:0;font-size:13px;color:#64748b}
+  .stat p{margin:8px 0 0;font-weight:700;font-size:16px}
+
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:8px;border:1px solid #e8eef7;text-align:left;font-size:13px}
+  th{background:#f1f7ff;color:#0d6efd;font-weight:600}
+
+  .muted{color:#556070;font-size:13px;margin-top:8px}
+  footer.small{font-size:12px;color:#64748b;text-align:center;margin-top:12px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="card" role="banner">
+      <h1>Xarajat & Foyda Hisoblagichi</h1>
+      <p class="lead">MyGov uslubida — qarz (Rossiya, RUB) oyma-oy yechiladi, qolgan oylar to‘liq hisoblanadi.</p>
+    </header>
+
+    <section class="card" aria-labelledby="params">
+      <h2 id="params" style="margin:0 0 10px 0;font-size:16px">Hisoblash parametrlari</h2>
+
+      <div class="grid">
+        <div>
+          <label>Oylik daromad (RUB)</label>
+          <input id="income" type="number" placeholder="Masalan: 80000" />
+        </div>
+
+        <div>
+          <label>Hisoblash uchun oylar soni</label>
+          <input id="months" type="number" placeholder="Masalan: 6" value="6" />
+        </div>
+
+        <div>
+          <label>Patent to‘lovi (RUB/oy)</label>
+          <input id="patent" type="number" placeholder="Masalan: 5000" />
+        </div>
+
+        <div>
+          <label>Trudovoy dogovor (RUB/oy)</label>
+          <input id="trudovoy" type="number" placeholder="Masalan: 3000" />
+        </div>
+
+        <div>
+          <label>Registratsiya (RUB/oy)</label>
+          <input id="reg" type="number" placeholder="Masalan: 1000" />
+        </div>
+
+        <div>
+          <label>Kvartira / Ijara (RUB/oy)</label>
+          <input id="rent" type="number" placeholder="Masalan: 20000" />
+        </div>
+
+        <div>
+          <label>Oziq-ovqat (kuniga, RUB)</label>
+          <input id="food" type="number" placeholder="Masalan: 500" />
+        </div>
+
+        <div>
+          <label>Transport (kuniga, RUB)</label>
+          <input id="trans" type="number" placeholder="Masalan: 200" />
+        </div>
+
+        <div class="full">
+          <label>Boshqa xarajatlar (RUB/oy)</label>
+          <input id="other" type="number" placeholder="Masalan: 3000" />
+        </div>
+
+        <div>
+          <label>Rossiyadagi jami qarz (RUB)</label>
+          <input id="debtTotal" type="number" placeholder="Masalan: 60000" />
+        </div>
+
+        <div>
+          <label>Oylik qarz to‘lovi (RUB)</label>
+          <input id="debtMonthly" type="number" placeholder="Masalan: 10000" />
+        </div>
+
+        <div>
+          <label>Oyda kunlar soni</label>
+          <input id="days" type="number" placeholder="Masalan: 30" value="30" />
+        </div>
+
+        <div>
+          <label>Dollar kursi (1 USD = ? RUB)</label>
+          <input id="usdRate" type="number" placeholder="Masalan: 100" value="100" />
+        </div>
+
+        <div>
+          <label>So'm kursi (1 USD = ? UZS)</label>
+          <input id="uzsRate" type="number" placeholder="Masalan: 12500" value="12500" />
+        </div>
+
+        <div class="full">
+          <label>O‘zbekistonda kunlik daromad (UZS, misol: 200000)</label>
+          <input id="uzDaily" type="number" placeholder="Masalan: 200000" />
+        </div>
+      </div>
+
+      <button onclick="calculate()">Hisoblash</button>
+      <p class="muted">Eslatma: qarz RUBda kiritiladi — hisob-kitob ham RUB bo‘yicha qarzdan avval va keyin kabi ko‘rsatadi.</p>
+    </section>
+
+    <section id="output" class="card" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h2 style="margin:0;font-size:16px">Natijalar</h2>
+          <p class="muted">Har oy uchun qarz oylik to‘lovi uskuna qilib hisoblanadi; qarz tugagach, keyingi oylar to‘liq foyda bilan ko‘rsatiladi.</p>
+        </div>
+        <div id="summary" class="muted"></div>
+      </div>
+
+      <div id="overview" style="margin-top:12px"></div>
+
+      <h3 style="margin-top:12px">Oyma-oy tafsilotlar</h3>
+      <div style="overflow:auto">
+        <table id="monthTable">
+          <thead>
+            <tr>
+              <th>Oy</th>
+              <th>Qarz to'lovi (RUB)</th>
+              <th>Oylik xarajat (qarz bilan) (RUB)</th>
+              <th>Sof foyda (RUB)</th>
+              <th>Foyda (USD)</th>
+              <th>Foyda (UZS)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="totals" style="margin-top:12px"></div>
+    </section>
+
+    <footer class="small card" style="text-align:center">Valyuta kurslari o‘zgaradi — aniq hisoblar uchun kurslarni yangilang.</footer>
+  </div>
+
+<script>
+  function fmt(n){ return (typeof n==='number' && !isNaN(n)) ? n.toLocaleString() : '0'; }
+
+  function calculate(){
+    // Inputs
+    const inc = parseFloat(document.getElementById('income').value) || 0;
+    const months = Math.max(1, parseInt(document.getElementById('months').value) || 1);
+    const patent = parseFloat(document.getElementById('patent').value) || 0;
+    const trud = parseFloat(document.getElementById('trudovoy').value) || 0;
+    const reg = parseFloat(document.getElementById('reg').value) || 0;
+    const rent = parseFloat(document.getElementById('rent').value) || 0;
+    const days = parseFloat(document.getElementById('days').value) || 30;
+    const foodDaily = parseFloat(document.getElementById('food').value) || 0;
+    const transDaily = parseFloat(document.getElementById('trans').value) || 0;
+    const other = parseFloat(document.getElementById('other').value) || 0;
+    const debtTotalInput = parseFloat(document.getElementById('debtTotal').value) || 0; // RUB
+    const debtMonthlyInput = parseFloat(document.getElementById('debtMonthly').value) || 0; // RUB
+    const usdRate = parseFloat(document.getElementById('usdRate').value) || 100;
+    const uzsRate = parseFloat(document.getElementById('uzsRate').value) || 12500;
+    const uzDaily = parseFloat(document.getElementById('uzDaily').value) || 0;
+
+    // Prepare
+    const monthlyBaseExpenses = patent + trud + reg + rent + other + (foodDaily * days) + (transDaily * days);
+    let debtRemaining = debtTotalInput;
+    const tbody = document.querySelector('#monthTable tbody');
+    tbody.innerHTML = '';
+
+    let totals = {
+      profitRub: 0,
+      profitUSD: 0,
+      profitUZS: 0,
+      debtPaid: 0
+    };
+
+    for(let m=1; m<=months; m++){
+      // Determine this month's debt payment (can't exceed remaining)
+      let debtPay = 0;
+      if(debtRemaining > 0 && debtMonthlyInput > 0){
+        debtPay = Math.min(debtMonthlyInput, debtRemaining);
+        debtRemaining -= debtPay;
+      }
+
+      // This month's expenses include debtPay
+      const expensesThisMonth = monthlyBaseExpenses + debtPay;
+      const profitRubThisMonth = inc - expensesThisMonth;
+      const profitUSDThisMonth = profitRubThisMonth / (usdRate || 1);
+      const profitUZSThisMonth = profitUSDThisMonth * (uzsRate || 1);
+
+      // Accumulate totals
+      totals.profitRub += profitRubThisMonth;
+      totals.profitUSD += profitUSDThisMonth;
+      totals.profitUZS += profitUZSThisMonth;
+      totals.debtPaid += debtPay;
+
+      // Append row
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m}</td>
+        <td>${fmt(Math.round(debtPay))} RUB</td>
+        <td>${fmt(Math.round(expensesThisMonth))} RUB</td>
+        <td>${fmt(Math.round(profitRubThisMonth))} RUB</td>
+        <td>$${isFinite(profitUSDThisMonth)?profitUSDThisMonth.toFixed(2):'0.00'}</td>
+        <td>${fmt(Math.round(profitUZSThisMonth))} so'm</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // Overview
+    const overview = document.getElementById('overview');
+    overview.innerHTML = `
+      <div class="row" style="margin-top:8px; gap:10px;">
+        <div class="stat"><h4>Umumiy qarz to‘landi (RUB)</h4><p>${fmt(Math.round(totals.debtPaid))} RUB</p></div>
+        <div class="stat"><h4>Jami foyda (RUB)</h4><p>${fmt(Math.round(totals.profitRub))} RUB</p></div>
+        <div class="stat"><h4>Jami foyda (UZS)</h4><p>${fmt(Math.round(totals.profitUZS))} so'm</p></div>
+      </div>
+    `;
+
+    // Uzbek side: monthly
+    const uzMonthly = uzDaily * days;
+    const uzMonthlyUSD = uzMonthly / uzsRate;
+    const uzMonthlyRUB = uzMonthlyUSD * usdRate;
+
+    // Comparison totals (last month effective profitUZS after debt)
+    const lastMonthProfitUZS = Math.round((totals.profitUZS / months)); // o'rtacha oyma-oy
+    const diffPerMonth = lastMonthProfitUZS - uzMonthly;
+
+    const totalsDiv = document.getElementById('totals');
+    totalsDiv.innerHTML = `
+      <div style="margin-top:12px;">
+        <div class="stat"><h4>O'zbekiston — oylik misol</h4><p>${fmt(Math.round(uzMonthly))} so'm (${fmt(Math.round(uzMonthlyUSD))} USD / ${fmt(Math.round(uzMonthlyRUB))} RUB)</p></div>
+        <div style="margin-top:10px;" class="stat"><h4>O'rtacha oyma-oy foyda (qarzni hisoblab, UZS)</h4><p>${fmt(Math.round(totals.profitUZS / months))} so'm</p></div>
+        <div style="margin-top:10px;" class="stat"><h4>Taqqoslash (oylik)</h4><p>${diffPerMonth>0 ? 'Rossiya taraf ozgina ko‘proq: ' + fmt(diffPerMonth) + ' so\'m' : diffPerMonth<0 ? "O'zbekistonda ko'proq: " + fmt(Math.abs(diffPerMonth)) + " so'm" : 'Teng'}</p></div>
+      </div>
+    `;
+
+    // Show output
+    document.getElementById('output').style.display = 'block';
+    document.getElementById('summary').textContent = `Qarz qolgan: ${fmt(Math.round(Math.max(0, debtRemaining)))} RUB`;
+
+    // Scroll to results (mobile friendly)
+    setTimeout(()=>{ document.getElementById('output').scrollIntoView({behavior:'smooth', block:'start'}); }, 120);
+  }
+</script>
+</body>
+</html>
