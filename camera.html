@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Davomat tizimi — Yuz orqali (face-api.js)</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#151a2f;--muted:#9aa7ff;--text:#eaf0ff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--accent:#6c9cff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+    header{padding:16px;border-bottom:1px solid #222a4d;background:linear-gradient(180deg,#121737,#0b1020)}
+    h1{margin:0;font-size:20px}.tag{margin-left:8px;font-size:11px;color:#98a2ff;border:1px solid #2a2f56;border-radius:6px;padding:2px 6px}
+    main{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;padding:14px}
+    @media (max-width:980px){main{grid-template-columns:1fr}}
+    .card{background:var(--panel);border:1px solid #222a4d;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,.25)}
+    .card h2{margin:0;padding:12px 14px;border-bottom:1px solid #222a4d;font-size:15px;color:var(--muted)}
+    .card .content{padding:12px 14px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{background:#212753;border:1px solid #2f3a7a;color:#fff;border-radius:10px;padding:9px 12px;font-weight:600;cursor:pointer}
+    button:hover{border-color:#4450a3}button.primary{background:var(--accent)}button.good{background:var(--ok);color:#08140c}button.warn{background:var(--warn);color:#2b1d03}
+    input,select{background:#0f1433;border:1px solid #2a3160;border-radius:10px;color:#fff;padding:9px 12px}
+    video,canvas{width:100%;max-height:56vh;border-radius:12px;border:1px solid #222a4d;background:#0a0f24}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px 10px;border-bottom:1px solid #222a4d} th{color:#b8c1ff;text-align:left}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px}
+    .pill.ok{background:rgba(34,197,94,.15);color:var(--ok);border:1px solid rgba(34,197,94,.35)}
+    .pill.miss{background:rgba(239,68,68,.15);color:var(--bad);border:1px solid rgba(239,68,68,.35)}
+    .notice{font-size:12px;color:#9aa3d7}
+    .tabs{display:flex;gap:8px;margin:10px 0}
+    .tab{padding:8px 12px;border:1px solid #2a3160;border-radius:10px;cursor:pointer}
+    .tab.active{background:#1a2148}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 Davomat tizimi — yuz orqali tanish <span class="tag">face-api.js / TensorFlow.js</span></h1>
+  </header>
+
+  <main>
+    <!-- Kamera va tanish -->
+    <section class="card">
+      <h2>🎥 Kamera + ko‘p yuzni tanish</h2>
+      <div class="content">
+        <div class="row">
+          <button id="btnStartFront" class="primary">Old kamera</button>
+          <button id="btnStartBack" class="primary">Orqa kamera</button>
+          <button id="btnStop">O‘chirish</button>
+          <button id="btnToggle">Boks/yorliq ko‘rsat</button>
+          <span id="status" class="notice">Model yuklanmoqda…</span>
+        </div>
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div class="row" style="margin-top:8px">
+          <label>Threshold: <input id="th" type="number" step="0.01" value="0.45" style="width:90px"></label>
+          <label>Min Conf: <input id="minc" type="number" step="0.01" value="0.6" style="width:90px"></label>
+          <span class="notice">Pastroq threshold = qattiqroq moslik (kam xato).</span>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button id="btnScanClass" class="good">Sinfni skan qil (auto-mark)</button>
+          <span class="notice">Yoqib qo‘yilgan kamerada butun sinfni bir zumda tekshiradi.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ro'yxat va davomat -->
+    <section class="card">
+      <h2>🧑‍🏫 Ro‘yxat, davomat va eksport</h2>
+      <div class="content">
+        <div class="row">
+          <input id="studentName" placeholder="Ism Familiya" style="flex:1"/>
+          <button id="btnEnroll" class="good">Snapshot saqlash</button>
+          <button id="btnEnrollAuto">Auto 3x</button>
+          <button id="btnClearFaces" class="warn">Yuzlar bazasini tozalash</button>
+        </div>
+
+        <div class="tabs">
+          <div id="tabToday" class="tab active">Bugungi jadval</div>
+          <div id="tabHistory" class="tab">Tarix</div>
+        </div>
+
+        <!-- Bugungi jadval -->
+        <div id="viewToday">
+          <table id="tableToday" style="margin-top:8px">
+            <thead><tr><th>Ism</th><th>Holat</th><th>Masofa</th><th>Oxirgi vaqt</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="notice">Kamera taniganda — bugun uchun avtomatik “Bor ✅”.</p>
+        </div>
+
+        <!-- Tarix jadvali -->
+        <div id="viewHistory" style="display:none">
+          <table id="tableHistory" style="margin-top:8px">
+            <thead id="historyHead"></thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="btnExportCsv">CSV eksport</button>
+          <button id="btnExportXlsx">Excel (XLSX) eksport</button>
+          <button id="btnExportFaces">Yuzlar JSON eksport</button>
+          <input type="file" id="importJson" accept="application/json" style="display:none"/>
+          <button id="btnImportFaces">Yuzlar JSON import</button>
+        </div>
+        <p class="notice">Embeddinglar (128D) va davomat localStorage’da saqlanadi. Ma’lumotlarni ehtiyot qiling.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Kutubxonalar -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    // ======= Global state & helpers =======
+    const FACES_KEY = 'fa.faces.v2';     // [{name, desc: [128D,...]}]
+    const ATTN_KEY  = 'fa.attendance.v2';// { [date]: { [name]: {status, score, time} } }
+    const $ = (id)=>document.getElementById(id);
+    const statusEl = $('status');
+
+    let video = $('video'), canvas = $('canvas'), ctx = canvas.getContext('2d');
+    let drawBoxes = true, running = false, stream;
+
+    const faces = loadJSON(FACES_KEY, []);                                 // roster + embeddings
+    const attendance = loadJSON(ATTN_KEY, {});                              // history by date
+
+    function loadJSON(k, fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+    function saveJSON(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+    function today(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function nowTime(){ return new Date().toLocaleTimeString(); }
+    function logStatus(t){ statusEl.textContent = t; }
+
+    // ======= Model loader =======
+    async function loadModels(){
+      const CDN = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+      try{
+        await faceapi.nets.tinyFaceDetector.loadFromUri(CDN);
+        await faceapi.nets.faceLandmark68TinyNet.loadFromUri(CDN);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(CDN);
+      }catch(e){
+        // Fallback: /models papkasi bo'lsa
+        await faceapi.nets.tinyFaceDetector.load('/models');
+        await faceapi.nets.faceLandmark68TinyNet.load('/models');
+        await faceapi.nets.faceRecognitionNet.load('/models');
+      }
+      logStatus('Model(lar) yuklandi');
+    }
+
+    // ======= Camera =======
+    async function startCamera(facing){
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+        video.srcObject = stream; await video.play(); running = true;
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        loop(); logStatus('Kamera ishga tushdi');
+      }catch(err){ logStatus('Kamera xatosi: '+err.message); }
+    }
+    function stopCamera(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); } running=false; logStatus('Kamera to‘xtadi'); }
+
+    // ======= Embedding math =======
+    function toF32(a){ return Float32Array.from(a); }
+    function avgDescriptor(list){ if(!list.length) return null; const n=list[0].length; const out=new Float32Array(n); for(const v of list){ const f=toF32(v); for(let i=0;i<n;i++){ out[i]+=f[i]; } } for(let i=0;i<n;i++) out[i]/=list.length; return out; }
+    function dist(a,b){ let s=0; for(let i=0;i<a.length;i++){ const d=a[i]-b[i]; s+=d*d; } return Math.sqrt(s); }
+
+    // ======= Enrollment =======
+    async function snapshotDescriptor(){
+      const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: parseFloat($('minc').value||'0.6') });
+      const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks(true).withFaceDescriptor();
+      if(!det) return null; return det.descriptor; // Float32Array(128)
+    }
+    async function enroll(name){
+      if(!name) return alert('Ism kiriting');
+      const desc = await snapshotDescriptor(); if(!desc) return alert('Yuz topilmadi');
+      const idx = faces.findIndex(f=>f.name.toLowerCase()===name.toLowerCase());
+      if(idx>=0){
+        faces[idx].desc.push(Array.from(desc));
+        if(faces[idx].desc.length>12) faces[idx].desc.shift();
+      }else{
+        faces.push({ name, desc: [Array.from(desc)] });
+      }
+      saveJSON(FACES_KEY, faces);
+      ensureTodayRows(); // jadvalga ismni qo'shish
+      refreshTodayTable();
+      alert('✅ Snapshot saqlandi');
+    }
+    async function enrollAuto(name, n=3){
+      if(!name) return alert('Ism kiriting');
+      for(let i=0;i<n;i++){ await new Promise(r=>setTimeout(r, 450)); const d=await snapshotDescriptor(); if(d){ await enroll(name); } }
+    }
+
+    // ======= Matching =======
+    function bestMatch(desc){
+      if(!faces.length) return { name: null, score: 1e9 };
+      let best = { name:null, score: 1e9 };
+      for(const f of faces){
+        const mean = avgDescriptor(f.desc);
+        const d = dist(desc, mean);
+        if(d < best.score) best = { name: f.name, score: d };
+      }
+      return best;
+    }
+
+    // ======= Attendance storage helpers =======
+    function ensureTodayRows(){
+      const d = today();
+      if(!attendance[d]) attendance[d] = {};
+      // barcha ro'yxatdagi o'quvchilar uchun default "Yo'q"
+      for(const f of faces){
+        if(!attendance[d][f.name]) attendance[d][f.name] = { status: 'Yo‘q ❌', score: null, time: null };
+      }
+      saveJSON(ATTN_KEY, attendance);
+    }
+    function markPresent(name, score){
+      const d = today(); ensureTodayRows();
+      attendance[d][name] = { status: 'Bor ✅', score: Number(score.toFixed(3)), time: nowTime() };
+      saveJSON(ATTN_KEY, attendance);
+    }
+
+    // ======= Live recognition loop =======
+    async function loop(){
+      if(!running) return;
+      const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: parseFloat($('minc').value||'0.6') });
+      const results = await faceapi.detectAllFaces(video, opts).withFaceLandmarks(true).withFaceDescriptors();
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const thr = parseFloat($('th').value||'0.45');
+
+      for(const det of results){
+        const box = det.detection.box, d = det.descriptor, match = bestMatch(d);
+        if(drawBoxes){
+          ctx.lineWidth=2; ctx.strokeStyle = match.score<=thr ? '#22c55e' : '#ef4444';
+          ctx.strokeRect(box.x, box.y, box.width, box.height);
+          const label = match.name? `${match.name} (${match.score.toFixed(2)})` : `Noma’lum (${match.score.toFixed(2)})`;
+          drawLabel(ctx, box.x, Math.max(0, box.y-22), label);
+        }
+        if(match.name && match.score <= thr){
+          // Auto mark present for today
+          markPresent(match.name, match.score);
+        }
+      }
+      refreshTodayTable(); // har kadrda jadvalni yangilab turamiz
+      requestAnimationFrame(loop);
+    }
+    function drawLabel(ctx,x,y,t){ ctx.font='600 13px Inter,system-ui,Arial'; const pad=6; const w=ctx.measureText(t).width+pad*2; const h=18; ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(x,y,w,h); ctx.fillStyle='#fff'; ctx.fillText(t,x+pad,y+13); }
+
+    // ======= Class scan (one-shot auto-mark) =======
+    async function scanClassOnce(){
+      if(!running) return alert('Kamera yoqilmagan');
+      ensureTodayRows();
+      const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: parseFloat($('minc').value||'0.6') });
+      const results = await faceapi.detectAllFaces(video, opts).withFaceLandmarks(true).withFaceDescriptors();
+      const thr = parseFloat($('th').value||'0.45');
+      let marked=0;
+      for(const det of results){
+        const match = bestMatch(det.descriptor);
+        if(match.name && match.score<=thr){ markPresent(match.name, match.score); marked++; }
+      }
+      refreshTodayTable();
+      alert(`Sinf skan qilindi. Belgilandi: ${marked} ta o‘quvchi`);
+    }
+
+    // ======= Tables =======
+    function refreshTodayTable(){
+      ensureTodayRows();
+      const d = today();
+      const tbody = $('tableToday').querySelector('tbody'); tbody.innerHTML='';
+      // ro'yxatdagi tartibda ko'rsatamiz
+      for(const f of faces){
+        const row = attendance[d][f.name] || {status:'Yo‘q ❌',score:null,time:null};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${f.name}</td>
+                        <td>${row.status}</td>
+                        <td>${row.score!=null?`<span class="pill ${row.score<=parseFloat($('th').value||'0.45')?'ok':'miss'}">${row.score}</span>`:'—'}</td>
+                        <td>${row.time||'—'}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function buildHistoryMatrix(){
+      // Dates sorted, columns: Name(s)
+      const dates = Object.keys(attendance).sort();
+      const names = faces.map(f=>f.name);
+      // header
+      const head = $('historyHead'); head.innerHTML='';
+      const headRow = document.createElement('tr');
+      headRow.innerHTML = '<th>Sana</th>' + names.map(n=>`<th>${n}</th>`).join('');
+      head.appendChild(headRow);
+      // body
+      const body = $('historyBody'); body.innerHTML='';
+      for(const d of dates){
+        const tr = document.createElement('tr');
+        let tds = `<td>${d}</td>`;
+        for(const n of names){
+          const cell = attendance[d] && attendance[d][n] ? attendance[d][n].status : 'Yo‘q ❌';
+          tds += `<td>${cell}</td>`;
+        }
+        tr.innerHTML = tds; body.appendChild(tr);
+      }
+    }
+
+    // ======= Export =======
+    function exportCSV(){
+      const names = faces.map(f=>f.name);
+      const dates = Object.keys(attendance).sort();
+      const rows = [['Sana', ...names]];
+      for(const d of dates){
+        const line = [d];
+        for(const n of names){
+          const cell = attendance[d] && attendance[d][n] ? attendance[d][n].status : 'Yo‘q ❌';
+          line.push(cell);
+        }
+        rows.push(line);
+      }
+      const csv = rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'}); const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download=`davomat_${today()}.csv`; a.click();
+    }
+
+    function exportXLSX(){
+      const names = faces.map(f=>f.name);
+      const dates = Object.keys(attendance).sort();
+      // Sheet: Attendance
+      const aoa = [['Sana', ...names]];
+      for(const d of dates){
+        const line = [d];
+        for(const n of names){
+          const cell = attendance[d] && attendance[d][n] ? attendance[d][n].status : 'Yo‘q ❌';
+          line.push(cell);
+        }
+        aoa.push(line);
+      }
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Davomat');
+      XLSX.writeFile(wb, `davomat_${today()}.xlsx`);
+    }
+
+    function exportFacesJSON(){
+      const blob = new Blob([JSON.stringify(faces,null,2)], {type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`faces_${today()}.json`; a.click();
+    }
+    function importFacesJSON(file){
+      const r=new FileReader();
+      r.onload=()=>{
+        try{
+          const data=JSON.parse(r.result);
+          if(Array.isArray(data)&&data[0]&&data[0].desc){
+            localStorage.setItem(FACES_KEY, JSON.stringify(data));
+            location.reload();
+          }else alert('JSON formati noto‘g‘ri');
+        }catch(e){ alert('JSON xatosi'); }
+      };
+      r.readAsText(file);
+    }
+
+    // ======= Tabs =======
+    function showTab(which){
+      if(which==='today'){ $('viewToday').style.display='block'; $('viewHistory').style.display='none'; $('tabToday').classList.add('active'); $('tabHistory').classList.remove('active'); refreshTodayTable(); }
+      else { $('viewToday').style.display='none'; $('viewHistory').style.display='block'; $('tabToday').classList.remove('active'); $('tabHistory').classList.add('active'); buildHistoryMatrix(); }
+    }
+
+    // ======= Events =======
+    window.addEventListener('load', async ()=>{
+      await loadModels();
+      ensureTodayRows();
+      refreshTodayTable();
+
+      $('btnStartFront').onclick = ()=> startCamera('user');
+      $('btnStartBack').onclick = ()=> startCamera('environment');
+      $('btnStop').onclick = stopCamera;
+      $('btnToggle').onclick = ()=> drawBoxes = !drawBoxes;
+
+      $('btnEnroll').onclick = ()=> enroll($('studentName').value.trim());
+      $('btnEnrollAuto').onclick = ()=> enrollAuto($('studentName').value.trim(), 3);
+      $('btnClearFaces').onclick = ()=>{ if(confirm('Barcha yuzlar o‘chirilsinmi?')){ localStorage.removeItem(FACES_KEY); location.reload(); } };
+
+      $('btnScanClass').onclick = scanClassOnce;
+
+      $('btnExportCsv').onclick = exportCSV;
+      $('btnExportXlsx').onclick = exportXLSX;
+      $('btnExportFaces').onclick = exportFacesJSON;
+      $('btnImportFaces').onclick = ()=> $('importJson').click();
+      $('importJson').addEventListener('change', e=>{ if(e.target.files[0]) importFacesJSON(e.target.files[0]); });
+
+      $('tabToday').onclick = ()=> showTab('today');
+      $('tabHistory').onclick = ()=> showTab('history');
+    });
+  </script>
+
+  <!-- Foydalanish bo'yicha qisqa ko'rsatma:
+    1) Sahifani HTTPS yoki http://localhost orqali oching (kamera uchun).
+    2) "Orqa kamera" tugmasi -> sinfni ko'rinishga keltiring.
+    3) Har bir o'quvchi uchun: ism yozing -> "Snapshot saqlash"ni 3-5 marta bosing (turli burchaklarda).
+    4) Dars boshida "Sinfni skan qil" yoki kamerani yoqib qoldiring — tanilganda "Bor ✅" avtomatik yoziladi.
+    5) "Tarix" tabida barcha kunlar bo'yicha jadvalni ko'rasiz, CSV/XLSX eksport tugmalari bilan fayllarni yuklab oling.
+  -->
+</body>
+</html>
